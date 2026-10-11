@@ -1,0 +1,94 @@
+<div class="app-container">
+  <!-- Header Banner -->
+  <header class="header">
+    <div class="title-group">
+      <h1>⛏️ MineGuard AI <span class="badge">Enterprise</span></h1>
+      <p class="subtitle">Decoupled Angular 19 SPA & Django REST Regulatory Safety System</p>
+    </div>
+  </header>
+
+  <!-- Navigation Switcher -->
+  <nav class="nav-tabs">
+    <button [class.active]="selectedTab === 'upload'" (click)="switchTab('upload')">Upload Analysis</button>
+    <button [class.active]="selectedTab === 'camera'" (click)="switchTab('camera')">Live Camera Capture</button>
+    <button [class.active]="selectedTab === 'copilot'" (click)="switchTab('copilot')">Statutory Copilot</button>
+  </nav>
+
+  <!-- TAB 1: Upload File -->
+  <section *ngIf="selectedTab === 'upload'" class="card">
+    <h3>Standard Image Upload</h3>
+    
+    <!-- Both Benchmark Buttons Here -->
+    <div class="benchmark-group" style="margin-bottom: 1rem; display: flex; gap: 10px;">
+      <button class="run-btn" 
+              [style.background]="activeScenario === 'A' ? '#0ea5e9' : '#334155'"
+              [style.borderColor]="activeScenario === 'A' ? '#0ea5e9' : '#475569'"
+              style="width: auto; margin-top: 0;" 
+              (click)="loadBenchmark('non_compliant.jpg', 'A')">
+        Test Scenario A: Non-Compliant
+      </button>
+      <button class="run-btn" 
+              [style.background]="activeScenario === 'B' ? '#0ea5e9' : '#334155'"
+              [style.borderColor]="activeScenario === 'B' ? '#0ea5e9' : '#475569'"
+              style="width: auto; margin-top: 0;" 
+              (click)="loadBenchmark('compliant_worker.jpg', 'B')">
+        Test Scenario B: Compliant
+      </button>
+    </div>
+
+    <div class="upload-zone">
+      <input type="file" (change)="onFileSelected($event)" accept="image/*" id="fileInput" />
+      <label for="fileInput" class="upload-btn">Choose Image</label>
+      <span *ngIf="selectedFile">{{ selectedFile.name }}</span>
+    </div>
+
+    <div *ngIf="previewUrl && !auditResult" class="preview-box">
+      <img [src]="previewUrl" alt="Selected Preview" class="preview-img" />
+      <button class="run-btn" (click)="runAnalysis()" [disabled]="loading">
+        {{ loading ? 'Running YOLOv8 & Statutory Audit...' : 'Run Compliance Analysis' }}
+      </button>
+    </div>
+  </section>
+
+  <!-- TAB 2: Live Camera -->
+  <section *ngIf="selectedTab === 'camera'" class="card">
+    <h3>Real-Time Camera Stream</h3>
+    <div class="video-wrapper">
+      <video #videoElement autoplay playsinline class="video-feed"></video>
+    </div>
+    <button class="run-btn" (click)="captureFrame()" [disabled]="loading">
+      {{ loading ? 'Auditing Snapshot...' : '📸 Snapshot & Audit' }}
+    </button>
+  </section>
+
+  <!-- TAB 3: Copilot -->
+  <section *ngIf="selectedTab === 'copilot'" class="card">
+    <h3>DGMS Statutory Safety Copilot</h3>
+    <p class="section-desc">Query DGMS circulars, MMR, CMR, and Section 72C penal provisions in natural language.</p>
+    <div class="copilot-input-row">
+      <input type="text" [(ngModel)]="copilotQuery" placeholder="e.g. What are the mandatory penalties under Section 72C?" class="copilot-input" />
+      <button class="run-btn" (click)="submitCopilot()" [disabled]="copilotLoading">
+        {{ copilotLoading ? 'Searching...' : 'Query' }}
+      </button>
+    </div>
+    <div *ngIf="copilotAnswerHtml" class="report-box" [innerHTML]="copilotAnswerHtml"></div>
+  </section>
+
+  <!-- Live Results Output Display (Hidden on Copilot tab) -->
+  <div *ngIf="auditResult && selectedTab !== 'copilot'" class="results-layout">
+    <!-- Top Result: YOLO Annotated View -->
+    <section class="card vision-card">
+      <h3>Vision Inference (YOLOv8)</h3>
+      <img [src]="auditResult.annotated_image" alt="YOLO Annotated Output" class="result-img" />
+      <div class="entities-tag">
+        <strong>Identified Entities:</strong>
+        <span *ngFor="let entity of auditResult.detections" class="tag">{{ entity }}</span>
+      </div>
+    </section>
+
+    <!-- Bottom Result: Statutory Report -->
+    <section class="card audit-card">
+      <div class="report-box" [innerHTML]="renderedReportHtml"></div>
+    </section>
+  </div>
+</div>
